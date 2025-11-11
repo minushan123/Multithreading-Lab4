@@ -1,20 +1,55 @@
-public class AlphabetThread extends Thread {
+public class Main implements Runnable {
+    private Thread t;
+    private volatile boolean running;
+
+    public void start() {
+        if (running) return;
+        running = true;
+        t = new Thread(this);
+        t.start();
+    }
+
+    public void stop() {
+        running = false;
+        if (t != null) t.interrupt();
+    }
 
     @Override
     public void run() {
-        try {
-            for (char ch = 'A'; ch <= 'Z'; ch++) {
-                System.out.print(ch + " ");
-                int randomSleep = (int) (Math.random() * 500); // random delay up to 0.5 sec
-                Thread.sleep(randomSleep);
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder pool = new StringBuilder(letters);
+
+        while (running && pool.length() > 0) {
+            int i = (int) (Math.random() * pool.length());
+            System.out.print(pool.charAt(i) + " ");
+            pool.deleteCharAt(i);
+
+            try {
+                Thread.sleep(50 + (int) (Math.random() * 450));
+            } catch (InterruptedException e) {
+                break;
             }
-        } catch (InterruptedException e) {
-            System.out.println("\nThread interrupted!");
         }
+
+        System.out.println("\nDone");
+        running = false;
+    }
+
+    public void join() {
+        try {
+            if (t != null) t.join();
+        } catch (InterruptedException ignored) {}
     }
 
     public static void main(String[] args) {
-        AlphabetThread thread = new AlphabetThread();
-        thread.start();
+        Main l = new Main();
+        l.start();
+        l.join();
+    }
+}
+
+    public static void main(String[] args) {
+        Main m = new Main();
+        m.start();
     }
 }
